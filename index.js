@@ -46,6 +46,16 @@ async function run() {
             res.json(products);
         });
 
+        // api to get user orders
+        app.get('/orders/:email', async (req, res) => {
+            console.log(req.params.email);
+            const query = { email: req.params.email };
+            const cursor = ordersCollection.find(query);
+            const orders = await cursor.toArray();
+            console.log(orders);
+            res.json(orders)
+        })
+
         // register user api
         app.post('/user', async (req, res) => {
             const user = req.body;
@@ -64,7 +74,6 @@ async function run() {
         // api to store order in db
         app.post('/orders', async (req, res) => {
             const order = req.body;
-            console.log(order);
             const result = await ordersCollection.insertOne(order);
             res.json(result);
         })
@@ -87,6 +96,14 @@ async function run() {
             const result = await usersCollection.updateOne(filter, updateDoc);
             res.json(result);
         });
+
+        // cancel order
+        app.delete('/order/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await ordersCollection.deleteOne(query);
+            res.json(result);
+        })
 
     }
     finally {
