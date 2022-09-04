@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 require('dotenv').config();
+const ObjectId = require('mongodb').ObjectId;
 
 const port = process.env.PORT || 5000;
 app.use(cors());
@@ -16,7 +17,10 @@ async function run() {
         await client.connect();
         const database = client.db('watch-store');
         const usersCollection = database.collection('users');
+        const productsCollection = database.collection('products');
+        const ordersCollection = database.collection('orders');
 
+        // api to check if the user is admin
         app.get('/user/:email', async (req, res) => {
             const email = req.params.email;
             const query = { email };
@@ -25,16 +29,47 @@ async function run() {
             if (user?.role === 'admin') {
                 admin = true;
             }
-            console.log(query);
             res.json(admin);
-        })
+        });
 
+        // api to get only 6 products in home page and all products in explore page
+        app.get('/homeproducts', async (req, res) => {
+            const page = req.query.page;
+            const cursor = productsCollection.find({});
+            let products;
+            if (page === 'home') {
+                products = await cursor.limit(6).toArray();
+            }
+            else if (page === 'all') {
+                products = await cursor.toArray();
+            }
+            res.json(products);
+        });
+
+        // register user api
         app.post('/user', async (req, res) => {
             const user = req.body;
             const result = await usersCollection.insertOne(user);
             res.json(result);
         });
 
+        // add product to database api
+        app.post('/product', async (req, res) => {
+            const newProduct = req.body;
+            const result = await productsCollection.insertOne(newProduct);
+            res.json(result);
+
+        });
+
+        // api to store order in db
+        app.post('/orders', async (req, res) => {
+            const order = req.body;
+            console.log(order);
+            const result = await ordersCollection.insertOne(order);
+            res.json(result);
+        })
+
+        // google login user upsert api
         app.put('/user', async (req, res) => {
             const user = req.body;
             const filter = { email: user.email };
@@ -44,12 +79,12 @@ async function run() {
             res.json(result);
         });
 
+        // make admin api
         app.put('/user/makeadmin', async (req, res) => {
             const email = req.body.email;
             const filter = { email };
             const updateDoc = { $set: { role: 'admin' } };
             const result = await usersCollection.updateOne(filter, updateDoc);
-            console.log(email);
             res.json(result);
         });
 
