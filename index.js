@@ -19,6 +19,7 @@ async function run() {
         const usersCollection = database.collection('users');
         const productsCollection = database.collection('products');
         const ordersCollection = database.collection('orders');
+        const reviewCollection = database.collection('reviews');
 
         // api to check if the user is admin
         app.get('/user/:email', async (req, res) => {
@@ -48,13 +49,19 @@ async function run() {
 
         // api to get user orders
         app.get('/orders/:email', async (req, res) => {
-            console.log(req.params.email);
             const query = { email: req.params.email };
             const cursor = ordersCollection.find(query);
             const orders = await cursor.toArray();
             console.log(orders);
             res.json(orders)
-        })
+        });
+
+        // api to get all the reviews
+        app.get('/review', async (req, res) => {
+            const cursor = reviewCollection.find({});
+            const reviews = await cursor.toArray();
+            res.json(reviews);
+        });
 
         // register user api
         app.post('/user', async (req, res) => {
@@ -75,6 +82,13 @@ async function run() {
         app.post('/orders', async (req, res) => {
             const order = req.body;
             const result = await ordersCollection.insertOne(order);
+            res.json(result);
+        });
+
+        // api to submit review
+        app.post('/review', async (req, res) => {
+            const review = req.body;
+            const result = await reviewCollection.insertOne(review);
             res.json(result);
         })
 
