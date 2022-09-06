@@ -47,6 +47,13 @@ async function run() {
             res.json(products);
         });
 
+        // api to get all orders
+        app.get('/orders', async (req, res) => {
+            const orders = ordersCollection.find({});
+            const cursor = await orders.toArray();
+            res.json(cursor);
+        })
+
         // api to get user orders
         app.get('/orders/:email', async (req, res) => {
             const query = { email: req.params.email };
@@ -111,11 +118,29 @@ async function run() {
             res.json(result);
         });
 
+        // api to update order status
+        app.put('/order/:id', async (req, res) => {
+            const orderId = req.params.id;
+            console.log(orderId);
+            const filter = { _id: ObjectId(orderId) };
+            const updateDoc = { $set: { status: 'Shipped' } };
+            const result = await ordersCollection.updateOne(filter, updateDoc);
+            res.json(result);
+        })
+
         // cancel order
         app.delete('/order/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
             const result = await ordersCollection.deleteOne(query);
+            res.json(result);
+        });
+
+        // api to delete product
+        app.delete('/product/:id', async (req, res) => {
+            const productId = req.params.id;
+            const query = { _id: ObjectId(productId) };
+            const result = await productsCollection.deleteOne(query);
             res.json(result);
         })
 
