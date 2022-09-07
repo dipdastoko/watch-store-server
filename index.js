@@ -59,7 +59,6 @@ async function run() {
             const query = { email: req.params.email };
             const cursor = ordersCollection.find(query);
             const orders = await cursor.toArray();
-            console.log(orders);
             res.json(orders)
         });
 
@@ -121,7 +120,6 @@ async function run() {
         // api to update order status
         app.put('/order/:id', async (req, res) => {
             const orderId = req.params.id;
-            console.log(orderId);
             const filter = { _id: ObjectId(orderId) };
             const updateDoc = { $set: { status: 'Shipped' } };
             const result = await ordersCollection.updateOne(filter, updateDoc);
